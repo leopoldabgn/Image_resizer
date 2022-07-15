@@ -15,7 +15,7 @@ public class Window extends JFrame
 		super();
 		this.setTitle("Image resizer");
 		this.setMinimumSize(new Dimension(w, h));
-		this.setResizable(false);
+		//this.setResizable(false);
 		this.setLocationRelativeTo(null);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		

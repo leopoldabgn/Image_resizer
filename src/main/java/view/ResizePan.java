@@ -3,6 +3,7 @@ package view;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
@@ -36,7 +37,7 @@ public class ResizePan extends JPanel
 	private static final long serialVersionUID = 1L;
 	
 	private JPanel pan1 = new JPanel(), pan2 = new JPanel(), pan3 = new JPanel(),
-			panelSize = new JPanel(), panelSize2 = new JPanel();
+			panelSize = new JPanel(), panelSize2 = new JPanel(), buttonsPan = new JPanel();
 	
 	private JButton parcourir1 = new JButton("Parcourir..."),
 					parcourir2 = new JButton("Parcourir..."),
@@ -56,9 +57,7 @@ public class ResizePan extends JPanel
 	private JSlider sizeSlide = new JSlider();
 	
 	public ResizePan()
-	{
-		super();
-		
+	{	
 		this.setLayout(new GridLayout(2,1));
 		
 		path1.setForeground(Color.RED);
@@ -83,7 +82,6 @@ public class ResizePan extends JPanel
 		panelSize.setLayout(new BoxLayout(panelSize, BoxLayout.LINE_AXIS));
 		panelSize.add(new JLabel("Select a new Size :"));
 		panelSize.add(panelSize2);
-		panelSize.add(validate);
 		
 		panelSize2.setLayout(new BoxLayout(panelSize2, BoxLayout.LINE_AXIS));
 		panelSize2.add(width2);
@@ -91,6 +89,9 @@ public class ResizePan extends JPanel
 		panelSize2.add(height2);
 		panelSize2.add(sizeSlide);
 		
+		buttonsPan.add(validate);
+		buttonsPan.add(openFolder2);
+
 	    sizeSlide.setMaximum(100);
 	    sizeSlide.setMinimum(0);
 	    sizeSlide.setValue(100);
@@ -124,7 +125,7 @@ public class ResizePan extends JPanel
 				}
 				path1.setText(f.getAbsolutePath());
 				if(f.getParent() != null)
-					path2.setText(f.getParent()+"\\"+name);
+					path2.setText(f.getParent()+File.separator+name);
 				
 				img = new ImageIcon(f.getAbsolutePath()).getImage();
 				if(!containsComponent(pan1, sizeLbl))
@@ -132,7 +133,9 @@ public class ResizePan extends JPanel
 				
 				width1.setText(""+img.getWidth(null));
 				height1.setText(""+img.getHeight(null));
-				
+				width2.setText(""+img.getWidth(null));
+				height2.setText(""+img.getHeight(null));
+
 				sizeLbl.setText("The actual image size is : "+ 
 								width1.getText()+"x"+height1.getText());
 				
@@ -142,8 +145,8 @@ public class ResizePan extends JPanel
 					pan1.add(openFolder1);
 				if(!containsComponent(pan2, panelSize))
 					pan2.add(panelSize);
-				if(!containsComponent(pan2, openFolder2))
-					pan2.add(openFolder2);
+				if(!containsComponent(pan2, buttonsPan))
+					pan2.add(buttonsPan);
 
 			}
 		});
@@ -171,12 +174,12 @@ public class ResizePan extends JPanel
 				try {
 					if(resize(path1.getText(), path2.getText(), Integer.parseInt(width2.getText()), Integer.parseInt(height2.getText())) == 0)
 					{
-						JOptionPane.showMessageDialog(null, "Conversion r�ussi !", "Information", JOptionPane.INFORMATION_MESSAGE);
-						if(!containsComponent(panelSize, openFolder2))
+						JOptionPane.showMessageDialog(null, "Conversion reussi !", "Information", JOptionPane.INFORMATION_MESSAGE);
+						/*if(!containsComponent(panelSize, openFolder2))
 						{
 							panelSize.add(openFolder2);
 							repaint();
-						}
+						}*/
 					}
 					else
 						JOptionPane.showMessageDialog(null, "Une erreur est survenue !", "Erreur", JOptionPane.INFORMATION_MESSAGE);
@@ -192,7 +195,7 @@ public class ResizePan extends JPanel
 		openFolder1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					Runtime.getRuntime().exec("explorer.exe /select," + path1.getText());
+					Desktop.getDesktop().open(new File(path1.getText()));
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
@@ -202,10 +205,12 @@ public class ResizePan extends JPanel
 		openFolder2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					String path = path2.getText().replaceAll("/", "\\\\");
-				       Process proc = Runtime.getRuntime().exec("explorer.exe /select, \"" + path + "\"");
-				       proc.waitFor();
-				} catch (Exception e1) {
+					File output = new File(path2.getText());
+					if(!output.exists()) {
+						return;
+					}
+					Desktop.getDesktop().open(output);
+				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
 			}
@@ -214,7 +219,7 @@ public class ResizePan extends JPanel
 		preview.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent e) {
-				new previewFrame(path1.getText());
+				new PreviewFrame(path1.getText());
 			}
 			
 		});
@@ -224,7 +229,7 @@ public class ResizePan extends JPanel
 		
 	}
 	
-	class previewFrame extends JFrame
+	class PreviewFrame extends JFrame
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -232,9 +237,8 @@ public class ResizePan extends JPanel
 		private JPanel panel;
 		private int W_MAX = 800, H_MAX = 600;
 		
-		public previewFrame(String imgPath)
+		public PreviewFrame(String imgPath)
 		{
-			super();
 			this.img = new ImageIcon(imgPath).getImage();
 			this.setTitle("Preview : "+imgPath);
 			this.setResizable(false);
@@ -251,7 +255,7 @@ public class ResizePan extends JPanel
 			}
 			
 			this.setSize(new Dimension(w, h));
-			this.panel = new previewPanel(img, w, h);
+			this.panel = new PreviewPanel(img, w, h);
 			this.setContentPane(panel);
 			this.setLocationRelativeTo(null);
 			this.setVisible(true);
@@ -259,16 +263,15 @@ public class ResizePan extends JPanel
 		
 	}
 	
-	class previewPanel extends JPanel
+	class PreviewPanel extends JPanel
 	{
 		private static final long serialVersionUID = 1L;
 		
 		private Image img;
 		private int w, h;
 		
-		public previewPanel(Image img, int w, int h)
+		public PreviewPanel(Image img, int w, int h)
 		{
-			super();
 			this.img = img;
 			this.w = w;
 			this.h = h;

@@ -7,7 +7,7 @@ public class Launcher
 	
 	public Launcher()
 	{
-		new Window(600, 600);
+		new Window(750, 600);
 	}
 
 	public static void main(String[] args) 
